@@ -4,7 +4,7 @@ This repository contains the code required to reproduce all results and figures 
 
 ## Instructions
 
-First, install Python 3.8.5 (newer versions may also work) and then clone this repository. Next, install the dependencies using pip (preferably in a new virtualenv):
+First, install Python 3.10.10 (newer versions may also work) and then clone this repository. Next, install the dependencies using pip (preferably in a new virtualenv):
 
 ````shell
 pip install -r requirements.txt
@@ -16,7 +16,7 @@ Optionally, set the number of processes to use during the hyper-parameter search
 export SLURM_CPUS_ON_NODE=20
 ````
 
-Now, you can train the models:
+Now, you can `cd src/` and train the models:
 ````shell
 python main.py
 ````
