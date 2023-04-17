@@ -14,6 +14,7 @@ from dl_omics import create_l1000_df
 
 current_file_path = os.path.dirname(os.path.realpath(__file__))
 base_dir = os.path.join(current_file_path, os.path.pardir)
+RANDOM_STATE = 42
 
 
 def calculate_scores(estimator, X_test, y_test):
@@ -33,7 +34,7 @@ def main():
     df, genes, meta_columns = create_l1000_df()
 
     if nested_group_cv:
-        df = df.sample(frac=1, random_state=42)
+        df = df.sample(frac=1, random_state=RANDOM_STATE)
         train_index_num, test_index_num = next(
             model_selection.GroupKFold(n_splits=5).split(
                 df, groups=df['compound']))
@@ -49,9 +50,9 @@ def main():
     X_validation, y_validation = df.loc[validation_index, genes], \
                                  df.loc[validation_index, target_name]
 
-    svc = svm.LinearSVC(max_iter=50_000, random_state=RANDOM_STATE)
+    svc = svm.LinearSVC(max_iter=50_000, random_state=RANDOM_STATE, C=1.0)
     selector = feature_selection.SelectKBest(
-        score_func=feature_selection.mutual_info_classif
+        score_func=feature_selection.mutual_info_classif, k=70
     )
     estimator = pipeline.Pipeline([
         ('scaler', preprocessing.StandardScaler()),
@@ -64,8 +65,8 @@ def main():
     c_grid = 10. ** np.arange(-2, 3)
 
     param_grid = {
-        'selector__k': k_grid,
         'scaler': scaler_grid,
+        'selector__k': k_grid,
         'svc__C': c_grid
     }
 
