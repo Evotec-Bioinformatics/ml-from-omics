@@ -67,13 +67,13 @@ def main():
     param_distributions = {
         'selector__k': distributions.IntDistribution(10, 200),
         'scaler': distributions.CategoricalDistribution(scaler_grid),
-        'classifier__C': distributions.FloatDistribution(0.001, 1., log=True)
+        'svc__C': distributions.FloatDistribution(0.001, 1., log=True)
     }
     if nested_group_cv:
-        inner_cv = model_selection.GroupShuffleSplit(test_size=0.2, n_splits=25, random_state=RANDOM_STATE)
+        inner_cv = model_selection.GroupShuffleSplit(test_size=0.2, n_splits=10, random_state=RANDOM_STATE)
         grid_search_file = 'grid_search_nested_group.pkl'
     else:
-        inner_cv = model_selection.RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=RANDOM_STATE)
+        inner_cv = model_selection.RepeatedStratifiedKFold(n_splits=5, n_repeats=2, random_state=RANDOM_STATE)
         grid_search_file = 'grid_search.pkl'
     grid_search_file = os.path.join(base_dir, grid_search_file)
 
@@ -85,7 +85,7 @@ def main():
         n_jobs = int(os.environ.get('SLURM_CPUS_ON_NODE', max_local_threads))
         print(f'Trying {n_trials} different configurations using {n_jobs} CPUs')
         search = OptunaSearchCV(
-            estimator, param_distributions, cv=inner_cv, n_jobs=n_jobs, n_trials=50,
+            estimator, param_distributions, cv=inner_cv, n_jobs=n_jobs, n_trials=n_trials,
             random_state=RANDOM_STATE, refit=False, return_train_score=True, scoring=mcc_scorer,
             study=None, verbose=2
         )
