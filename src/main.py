@@ -9,14 +9,11 @@ import numpy as np
 import joblib
 import pandas as pd
 from sklearn import metrics, preprocessing, pipeline, svm, feature_selection, model_selection
-from optuna import distributions
-from optuna.integration import OptunaSearchCV
 
 from dl_omics import create_l1000_df
 
 current_file_path = os.path.dirname(os.path.realpath(__file__))
 base_dir = os.path.join(current_file_path, os.path.pardir)
-RANDOM_STATE = 42
 
 
 def calculate_scores(estimator, X_test, y_test):
@@ -31,7 +28,6 @@ def main():
 
     nested_group_cv = False
     max_local_threads = 4
-    n_trials = 50
 
     target_name = 'dili'
     df, genes, meta_columns = create_l1000_df()
@@ -58,17 +54,21 @@ def main():
         score_func=feature_selection.mutual_info_classif
     )
     estimator = pipeline.Pipeline([
-        ('selector', selector),
         ('scaler', preprocessing.StandardScaler()),
+        ('selector', selector),
         ('svc', svc)
     ])
 
     scaler_grid = ['passthrough', preprocessing.StandardScaler(), preprocessing.RobustScaler()]
-    param_distributions = {
-        'selector__k': distributions.IntDistribution(10, 200),
-        'scaler': distributions.CategoricalDistribution(scaler_grid),
-        'classifier__C': distributions.FloatDistribution(0.001, 1., log=True)
+    k_grid = np.arange(10, 201, 10)
+    c_grid = 10. ** np.arange(-2, 3)
+
+    param_grid = {
+        'selector__k': k_grid,
+        'scaler': scaler_grid,
+        'svc__C': c_grid
     }
+
     if nested_group_cv:
         inner_cv = model_selection.GroupShuffleSplit(test_size=0.2, n_splits=25, random_state=RANDOM_STATE)
         grid_search_file = 'grid_search_nested_group.pkl'
@@ -82,12 +82,12 @@ def main():
     try:
         search = joblib.load(grid_search_file)
     except FileNotFoundError:
+        n_configurations = np.product(list(map(len, param_grid.values())))
         n_jobs = int(os.environ.get('SLURM_CPUS_ON_NODE', max_local_threads))
-        print(f'Trying {n_trials} different configurations using {n_jobs} CPUs')
-        search = OptunaSearchCV(
-            estimator, param_distributions, cv=inner_cv, n_jobs=n_jobs, n_trials=50,
-            random_state=RANDOM_STATE, refit=False, return_train_score=True, scoring=mcc_scorer,
-            study=None, verbose=2
+        print(f'Trying {n_configurations} different configurations using {n_jobs} CPUs')
+        search = model_selection.GridSearchCV(
+            estimator, param_grid, cv=inner_cv, scoring=mcc_scorer, n_jobs=n_jobs,
+            refit=False, return_train_score=True, verbose=2
         )
         search.fit(X_train, y_train, groups=df.loc[train_index, 'compound'])
         joblib.dump(search, grid_search_file, compress=3)
