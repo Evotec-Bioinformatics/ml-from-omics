@@ -53,7 +53,7 @@ def main():
     X_validation, y_validation = df.loc[validation_index, genes], \
                                  df.loc[validation_index, target_name]
 
-    svc = svm.LinearSVC(max_iter=50_000)
+    svc = svm.LinearSVC(max_iter=50_000, random_state=RANDOM_STATE)
     selector = feature_selection.SelectKBest(
         score_func=feature_selection.mutual_info_classif
     )
@@ -70,10 +70,10 @@ def main():
         'classifier__C': distributions.FloatDistribution(0.001, 1., log=True)
     }
     if nested_group_cv:
-        inner_cv = model_selection.GroupShuffleSplit(test_size=0.2, n_splits=25, random_state=42)
+        inner_cv = model_selection.GroupShuffleSplit(test_size=0.2, n_splits=25, random_state=RANDOM_STATE)
         grid_search_file = 'grid_search_nested_group.pkl'
     else:
-        inner_cv = model_selection.RepeatedStratifiedKFold(n_splits=5, n_repeats=5)
+        inner_cv = model_selection.RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=RANDOM_STATE)
         grid_search_file = 'grid_search.pkl'
     grid_search_file = os.path.join(base_dir, grid_search_file)
 
