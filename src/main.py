@@ -64,8 +64,8 @@ def main():
     c_grid = 10. ** np.arange(-2, 3)
 
     param_grid = {
-        'scaler': scaler_grid,
         'selector__k': k_grid,
+        'scaler': scaler_grid,
         'svc__C': c_grid
     }
 
