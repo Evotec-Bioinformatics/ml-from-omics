@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import os
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
+
 import sys
 import os
 from copy import deepcopy
 
-import numpy as np
 import joblib
 import pandas as pd
 from sklearn import metrics, preprocessing, pipeline, svm, feature_selection, model_selection
@@ -37,13 +41,13 @@ def main():
     df, genes, meta_columns = create_l1000_df()
 
     if nested_group_cv:
-        df = df.sample(frac=1, random_state=42)
+        df = df.sample(frac=1, random_state=RANDOM_STATE)
         train_index_num, test_index_num = next(
             model_selection.GroupKFold(n_splits=5).split(
                 df, groups=df['compound']))
-        train_index = pd.Series(index=df.index, dtype=bool)
+        train_index = pd.Series(index=df.index, dtype=bool, data=False)
         train_index.iloc[train_index_num] = True
-        validation_index = pd.Series(index=df.index, dtype=bool)
+        validation_index = pd.Series(index=df.index, dtype=bool, data=False)
         validation_index.iloc[test_index_num] = True
     else:
         train_index = df['set'] == 'Training'
@@ -70,10 +74,10 @@ def main():
         'svc__C': distributions.FloatDistribution(0.001, 1., log=True)
     }
     if nested_group_cv:
-        inner_cv = model_selection.GroupShuffleSplit(test_size=0.2, n_splits=10, random_state=RANDOM_STATE)
+        inner_cv = model_selection.GroupShuffleSplit(test_size=0.2, n_splits=25, random_state=RANDOM_STATE)
         grid_search_file = 'grid_search_nested_group.pkl'
     else:
-        inner_cv = model_selection.RepeatedStratifiedKFold(n_splits=5, n_repeats=2, random_state=RANDOM_STATE)
+        inner_cv = model_selection.RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=RANDOM_STATE)
         grid_search_file = 'grid_search.pkl'
     grid_search_file = os.path.join(base_dir, grid_search_file)
 
