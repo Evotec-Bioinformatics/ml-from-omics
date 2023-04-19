@@ -2,9 +2,11 @@
 
 This repository contains the code required to reproduce all results and figures presented in the book chapter "Machine learning from omics data" (Springer Protocols, 2021).
 
+**This is an updated version of the [original code](https://github.com/Evotec-Bioinformatics/ml-from-omics/tree/original_code). It uses a newer Python version, more recent dependencies and Optuna for hyper-parameter search.**
+
 ## Instructions
 
-First, install Python 3.8.5 (newer versions may also work) and then clone this repository. Next, install the dependencies using pip (preferably in a new virtualenv):
+First, install Python 3.10.10 (newer versions may also work) and then clone this repository. Next, install the dependencies using pip (preferably in a new virtualenv):
 
 ````shell
 pip install -r requirements.txt
@@ -16,7 +18,7 @@ Optionally, set the number of processes to use during the hyper-parameter search
 export SLURM_CPUS_ON_NODE=20
 ````
 
-Now, you can train the models:
+Now, you can `cd src/` and train the models:
 ````shell
 python main.py
 ````
