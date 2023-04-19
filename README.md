@@ -2,6 +2,8 @@
 
 This repository contains the code required to reproduce all results and figures presented in the book chapter "Machine learning from omics data" (Springer Protocols, 2021).
 
+**This is the original code used to generate the results in the book chapter. There is an updated version in the [master branch](https://github.com/Evotec-Bioinformatics/ml-from-omics).**
+
 ## Instructions
 
 First, install Python 3.8.5 (newer versions may also work) and then clone this repository. Next, install the dependencies using pip (preferably in a new virtualenv):
