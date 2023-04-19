@@ -36,31 +36,31 @@ def save_figure(image_path, fig=None):
 def create_grid_search_plots(grid_search_file, image_folder):
 
     search = joblib.load(grid_search_file)
-    search_result_df = pd.DataFrame(search.cv_results_)
+    search_result_df = search.trials_dataframe()
 
-    param_name = 'param_selector__k'
+    param_name = 'params_selector__k'
     param_display_name = 'k'
 
     # find configuration with best test score for each k
-    best_score_per_k_index = search_result_df.groupby(param_name)['mean_test_score']\
+    best_score_per_k_index = search_result_df.groupby(param_name)['user_attrs_mean_test_score']\
         .idxmax()
     search_result_df = search_result_df.loc[best_score_per_k_index, :]
 
     # convert results to long format
-    param_names = ['param_scaler', 'param_selector__k', 'param_svc__C']
+    param_names = ['params_scaler', 'params_selector__k', 'params_svc__C']
     train_split_names = [c for c in search_result_df.columns if
-                         c.startswith('split') and c.endswith('train_score')]
+                         c.startswith('user_attrs_split') and c.endswith('train_score')]
     test_split_names = [c for c in search_result_df.columns if
-                        c.startswith('split') and c.endswith('test_score')]
+                        c.startswith('user_attrs_split') and c.endswith('test_score')]
     data = []
     for index, row in search_result_df.iterrows():
         param_values = row[param_names].tolist()
         train_scores = row[train_split_names].tolist()
         test_scores = row[test_split_names].tolist()
         for train_score in train_scores:
-            data.append(param_values + ['train', train_score, row.mean_train_score, index])
+            data.append(param_values + ['train', train_score, row.user_attrs_mean_train_score, index])
         for test_score in test_scores:
-            data.append(param_values + ['test', test_score, row.mean_test_score, index])
+            data.append(param_values + ['test', test_score, row.user_attrs_mean_test_score, index])
 
     plot_data = pd.DataFrame(
         data, columns=['scaler', 'k', 'C', 'split', 'MCC', 'mean', 'index'])
@@ -77,9 +77,9 @@ def create_grid_search_plots(grid_search_file, image_folder):
     x_ticks = x_ticks[::2]
     ax.set_xticks(x_ticks)
 
-    x = search.best_params_[param_name.replace('param_',  '')]
+    x = search.best_params_[param_name.replace('params_',  '')]
     y = search.best_score_
-    ax.plot(x, y, '*k', markersize=15, zorder=-1, alpha=0.8,
+    ax.plot(x, y, '*', markersize=15, zorder=-1, alpha=0.8,
             color=ax.lines[1].get_color())
 
     ax.set_xlim(plot_data[param_display_name].min(), plot_data[param_display_name].max())
