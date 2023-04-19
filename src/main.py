@@ -47,15 +47,14 @@ def main():
                 df, groups=df['compound']))
         train_index = pd.Series(index=df.index, dtype=bool, data=False)
         train_index.iloc[train_index_num] = True
-        validation_index = pd.Series(index=df.index, dtype=bool, data=False)
-        validation_index.iloc[test_index_num] = True
+        test_index = pd.Series(index=df.index, dtype=bool, data=False)
+        test_index.iloc[test_index_num] = True
     else:
         train_index = df['set'] == 'Training'
-        validation_index = df['set'] == 'Test'
+        test_index = df['set'] == 'Test'
 
     X_train, y_train = df.loc[train_index, genes], df.loc[train_index, target_name]
-    X_validation, y_validation = df.loc[validation_index, genes], \
-                                 df.loc[validation_index, target_name]
+    X_test, y_test = df.loc[test_index, genes], df.loc[test_index, target_name]
 
     svc = svm.LinearSVC(max_iter=50_000, random_state=RANDOM_STATE)
     selector = feature_selection.SelectKBest(
@@ -105,9 +104,9 @@ def main():
     n_features = X_train.shape[1]
     print(f'{n_selected_features} out of {n_features} features used')
 
-    y_validation_predicted = estimator.predict(X_validation)
-    accuracy = metrics.accuracy_score(y_validation, y_validation_predicted)
-    mcc = metrics.matthews_corrcoef(y_validation, y_validation_predicted)
+    y_test_predicted = estimator.predict(X_test)
+    accuracy = metrics.accuracy_score(y_test, y_test_predicted)
+    mcc = metrics.matthews_corrcoef(y_test, y_test_predicted)
     print('accuracy:', accuracy)
     print('MCC:', mcc)
 
